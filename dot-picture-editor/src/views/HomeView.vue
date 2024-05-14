@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, type Ref } from 'vue'
 
 const canvas = ref<HTMLCanvasElement | null>(null)
 const ctx = ref<CanvasRenderingContext2D | null>(null)
+const preview = ref<HTMLCanvasElement | null>(null)
+const pctx = ref<CanvasRenderingContext2D | null>(null)
 const grid = ref({ x: 16, y: 16 })
 
-const clear = () => {
+const clear = (
+  canvas: Ref<HTMLCanvasElement | null>,
+  ctx: Ref<CanvasRenderingContext2D | null>
+) => {
   if (ctx.value) {
     ctx.value.fillStyle = '#000000'
     ctx.value.fillRect(0, 0, canvas.value!.width, canvas.value!.height)
   }
-  drawGrid()
 }
 
 const getPos = (e: MouseEvent) => {
@@ -38,11 +42,16 @@ const mouseDown = (e: MouseEvent) => {
   if (!ctx.value || !canvas.value) {
     return undefined
   }
+  if (!pctx.value || !preview.value) {
+    return undefined
+  }
   const posGrid = getGrid(e)
   if (e.button == 0) {
     ctx.value.fillStyle = '#FFFFFF'
+    pctx.value.fillStyle = '#FFFFFF'
   } else {
     ctx.value.fillStyle = '#000000'
+    pctx.value.fillStyle = '#000000'
   }
   ctx.value.fillRect(
     posGrid.x * (canvas.value.width / grid.value.x) + 1,
@@ -50,6 +59,7 @@ const mouseDown = (e: MouseEvent) => {
     canvas.value.width / grid.value.x - 2,
     canvas.value.height / grid.value.y - 2
   )
+  pctx.value.fillRect(posGrid.x, posGrid.y, 1, 1)
 }
 
 const drawGrid = () => {
@@ -70,6 +80,9 @@ const drawGrid = () => {
 }
 
 onMounted(() => {
+  if (preview.value) {
+    pctx.value = preview.value.getContext('2d')
+  }
   if (canvas.value) {
     ctx.value = canvas.value.getContext('2d')
 
@@ -77,13 +90,19 @@ onMounted(() => {
     canvas.value.addEventListener(`contextmenu`, (e) => {
       e.preventDefault()
     })
-    clear()
   }
+
+  clear(canvas, ctx)
+  clear(preview, pctx)
+
+  drawGrid()
 })
 </script>
 
 <template>
   <main>
     <canvas ref="canvas" width="512" height="512"></canvas>
+    <span>...</span>
+    <canvas ref="preview" width="16" height="16"></canvas>
   </main>
 </template>
