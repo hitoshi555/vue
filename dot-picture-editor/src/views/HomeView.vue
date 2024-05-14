@@ -79,6 +79,15 @@ const drawGrid = () => {
   ctx.value.stroke()
 }
 
+const saveImage = () => {
+  if (preview.value !== null) {
+    const link = document.createElement('a')
+    link.href = preview.value.toDataURL('image/png')
+    link.download = 'dot.png'
+    link.click()
+  }
+}
+
 onMounted(() => {
   if (preview.value) {
     pctx.value = preview.value.getContext('2d')
@@ -104,5 +113,7 @@ onMounted(() => {
     <canvas ref="canvas" width="512" height="512"></canvas>
     <span>...</span>
     <canvas ref="preview" width="16" height="16"></canvas>
+    <span>...</span>
+    <button @click="saveImage">download</button>
   </main>
 </template>
